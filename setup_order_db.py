@@ -10,6 +10,7 @@ CREATE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS order_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_number TEXT NOT NULL,
+    order_id TEXT,
     item_id TEXT NOT NULL,
     raw_json TEXT NOT NULL,
     shipped INTEGER NOT NULL DEFAULT 0,
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     output_filename TEXT,
     requested_proof INTEGER NOT NULL DEFAULT 0,
     needs_manual_review INTEGER NOT NULL DEFAULT 0,
+    tags_applied INTEGER NOT NULL DEFAULT 0,
     names TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -42,11 +44,13 @@ ADD_COLUMNS = {
     "custom_field1": "ALTER TABLE order_items ADD COLUMN custom_field1 TEXT",
     "buyer_note": "ALTER TABLE order_items ADD COLUMN buyer_note TEXT",
     "year": "ALTER TABLE order_items ADD COLUMN year TEXT DEFAULT '2025'",
+    "order_id": "ALTER TABLE order_items ADD COLUMN order_id TEXT",
     "is_generated": "ALTER TABLE order_items ADD COLUMN is_generated INTEGER NOT NULL DEFAULT 0",
     "generation_error": "ALTER TABLE order_items ADD COLUMN generation_error TEXT",
     "output_filename": "ALTER TABLE order_items ADD COLUMN output_filename TEXT",
     "requested_proof": "ALTER TABLE order_items ADD COLUMN requested_proof INTEGER NOT NULL DEFAULT 0",
     "needs_manual_review": "ALTER TABLE order_items ADD COLUMN needs_manual_review INTEGER NOT NULL DEFAULT 0",
+    "tags_applied": "ALTER TABLE order_items ADD COLUMN tags_applied INTEGER NOT NULL DEFAULT 0",
     "created_at": "ALTER TABLE order_items ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
     "updated_at": "ALTER TABLE order_items ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
 }
@@ -58,6 +62,8 @@ CREATE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product)",
     "CREATE INDEX IF NOT EXISTS idx_order_items_file_found ON order_items(file_found)",
     "CREATE INDEX IF NOT EXISTS idx_order_items_is_generated ON order_items(is_generated)",
+    "CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)",
+    "CREATE INDEX IF NOT EXISTS idx_order_items_tags_applied ON order_items(tags_applied)",
 ]
 
 

@@ -140,7 +140,10 @@ def extract_buyer_note(order: dict, item: dict, json_data: dict) -> str:
 
 
 def item_has_only_customized_url_option(item: dict) -> bool:
-    options = item.get('jsonData').get("options") or item.get("extendedOptions") or []
+    options = item.get("options") or item.get("extendedOptions")
+    if options is None:
+        json_data = item.get("jsonData") or item.get("json_data") or {}
+        options = json_data.get("options") or json_data.get("extendedOptions")
     if not isinstance(options, list):
         return False
     if len(options) != 1:
@@ -162,6 +165,9 @@ def upsert_items(
         if not order_number:
             logging.debug("Skipping order without orderNumber: %s", order)
             continue
+
+        order_id_value = order.get("orderId")
+        order_id = str(order_id_value).strip() if order_id_value is not None else None
 
         items = order.get("items") or []
         if any(item_has_only_customized_url_option(item) for item in items):
@@ -191,12 +197,13 @@ def upsert_items(
 
             cur.execute(
                 """
-                INSERT INTO order_items (order_number, item_id, raw_json, shipped, file_found, product, quantity, options, custom_field1, buyer_note)
-                VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, ?)
+                INSERT INTO order_items (order_number, order_id, item_id, raw_json, shipped, file_found, product, quantity, options, custom_field1, buyer_note)
+                VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(order_number, item_id) DO NOTHING
                 """,
                 (
                     order_number,
+                    order_id,
                     item_id,
                     raw_json,
                     file_found_value,
@@ -213,11 +220,12 @@ def upsert_items(
                 cur.execute(
                     """
                     UPDATE order_items
-                    SET raw_json = ?, shipped = 0, file_found = ?, product = ?, quantity = ?, options = ?, custom_field1 = ?, buyer_note = ?, updated_at = CURRENT_TIMESTAMP
+                    SET raw_json = ?, order_id = ?, shipped = 0, file_found = ?, product = ?, quantity = ?, options = ?, custom_field1 = ?, buyer_note = ?, updated_at = CURRENT_TIMESTAMP
                     WHERE order_number = ? AND item_id = ?
                     """,
                     (
                         raw_json,
+                        order_id,
                         file_found_value,
                         product_value,
                         quantity_value,
