@@ -9,6 +9,7 @@ import os
 import sqlite3
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Iterable, List, Optional, Sequence
 
@@ -22,6 +23,12 @@ DEFAULT_ILLUSTRATOR = Path(
         r"C:\Program Files\Adobe\Adobe Illustrator 2022\Support Files\Contents\Windows\Illustrator.exe",
     )
 )
+SAVE_DIR = Path(
+    os.getenv(
+        "SAVE_DIR",
+        r"D:/APKcompany Dropbox/Kirill Apkalikov/etsy/All Orders/3D Christmas tree/2025/",
+    )
+).expanduser().resolve()
 
 
 def parse_id_selector(selector: str) -> List[int]:
@@ -59,6 +66,9 @@ def ensure_paths(illustrator_path: Path, jsx_path: Path) -> tuple[Path, Path, Pa
 
     data_json = DATA_JSON.resolve()
     data_json.parent.mkdir(parents=True, exist_ok=True)
+
+    if not SAVE_DIR.exists():
+        raise FileNotFoundError(f"SAVE_DIR does not exist: {SAVE_DIR}")
 
     return illustrator_path, jsx_path, data_json
 
@@ -120,12 +130,15 @@ def write_job_json(data_path: Path, names: List[str], layer_name: str, filename:
 
 
 def run_illustrator(illustrator_path: Path, jsx_path: Path) -> None:
+    print('run_illustrator started')
     result = subprocess.run(
         [str(illustrator_path), "-s", str(jsx_path)],
         cwd=str(PROJECT_ROOT),
         check=True,
-        timeout=5,
+        timeout=17,
     )
+    time.sleep(5)
+    print('run_illustrator ended')
     if result.returncode != 0:
         raise RuntimeError(f"Illustrator exited with code {result.returncode}")
 
@@ -242,10 +255,16 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
             names_with_year = [year] + names
             layer_name = str(len(names_with_year))
             filename = f"{row['order_number']}_{row['item_id']}.pdf"
+            save_path = SAVE_DIR / filename
 
             try:
+                if len(names) > 10:
+                    raise FileNotFoundError('Too Many Names')
+
                 write_job_json(data_json_path, names_with_year, layer_name, filename)
                 run_illustrator(illustrator_path, jsx_path)
+                if not save_path.exists():
+                    raise FileNotFoundError(f"Expected file not found: {save_path}")
                 update_row(cursor, row["id"], filename, True, None)
                 generated += 1
 

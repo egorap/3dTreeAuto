@@ -3,11 +3,11 @@ var SAVE_DIR = "D:/APKcompany Dropbox/Kirill Apkalikov/etsy/All Orders/3D Christ
 var MAX_WIDTH = {
     "11": [30, 43, 53, 72, 81, 90, 90, 90, 90, 90, 90],
     "10": [30, 46, 56, 70, 75, 95, 100, 100, 100, 100],
-    "9": [30, 40, 50, 63, 77, 93, 100, 100, 100],
-    "8": [30, 42, 52, 66, 77, 102, 114, 114],
+    "9": [30, 36, 50, 63, 77, 93, 100, 100, 100],
+    "8": [30, 39, 52, 66, 77, 102, 114, 114],
     "7": [30, 44, 56, 70, 85, 114, 116],
-    "6": [30, 46, 60, 72, 87, 114],
-    "5": [30, 60, 72, 92, 114],
+    "6": [30, 44, 60, 72, 87, 114],
+    "5": [30, 56, 72, 92, 114],
     "4": [30, 62, 87, 97],
     "3": [30, 65, 82],
 }
@@ -57,7 +57,11 @@ function main() {
 
 
     var doc = app.open(File(TEMPLATE_PATH));
-    var treeLayer = doc.layers.getByName(layerName);
+    try {
+        var treeLayer = doc.layers.getByName(layerName);
+    } catch (e) {
+        return
+    }
     treeLayer.visible = true;
 
     var textLayer = treeLayer.layers.getByName("text");

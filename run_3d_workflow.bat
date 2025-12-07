@@ -8,6 +8,8 @@ if exist venv\Scripts\activate.bat (
     echo [WARN] venv not found, continuing without activation.
 )
 
+TIMEOUT /T 1000
+
 :loop
     echo === Running download.py ===
     python download.py --verbose

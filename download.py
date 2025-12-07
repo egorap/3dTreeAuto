@@ -170,11 +170,14 @@ def upsert_items(
         order_id = str(order_id_value).strip() if order_id_value is not None else None
 
         items = order.get("items") or []
-        if any(item_has_only_customized_url_option(item) for item in items):
-            logging.info("Skipping order %s because it contains items waiting for Amazon personalization.", order_number)
-            continue
-
         for item in items:
+            if item_has_only_customized_url_option(item):
+                logging.info(
+                    "Skipping item %s from order %s because it is waiting for Amazon personalization.",
+                    item.get("orderItemId") or item.get("itemId") or "<unknown>",
+                    order_number,
+                )
+                continue
             raw_item_id = (
                 item.get("orderItemId")
                 or item.get("order_item_id")
